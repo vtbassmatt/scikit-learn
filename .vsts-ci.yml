@@ -1,0 +1,98 @@
+
+phases:
+
+- phase: 'TestInUbuntu'
+  queue:
+    name: 'Hosted Linux'
+    parallel: 1
+    matrix:
+      # Python27:
+      #   python.version: '2.7'
+      # Python35:
+      #   python.version: '3.5'
+      Python36:
+        conda: true
+        python.version: '3.6'
+        numpy.version: '1.14.2'
+        scipy.version: '1.0.0'
+        pandas.version: '0.20.3'
+        cython.version: '0.26.1'
+        pyamg.version: '3.3.2'
+        pillow.version: '4.3.0'
+        coverage: true
+        check_pytest_soft_dependency: true
+        test_docstrings: true
+      # Python37-dev:
+      #   python.version: '>= 3.7.0a'
+  steps:
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+        architecture: 'x64'
+
+    # - script: python -m pip install --upgrade pip && pip install -r requirements.txt
+    #   displayName: 'Install dependencies'
+    
+    - script: |
+        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+        MINICONDA_PATH=$BUILD_BINARIESDIRECTORY/miniconda
+        chmod +x miniconda.sh && ./miniconda.sh -b -p $MINICONDA_PATH
+        echo "##vso[task.setvariable variable=MINICONDA_PATH]$MINICONDA_PATH"
+        export PATH=$MINICONDA_PATH/bin:$PATH
+        conda update --yes conda
+
+        TO_INSTALL="python=$PYTHON_VERSION pip pytest pytest-cov \
+                    numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION \
+                    cython=$CYTHON_VERSION"
+
+        if [[ "$INSTALL_MKL" == "true" ]]; then
+            TO_INSTALL="$TO_INSTALL mkl"
+        else
+            TO_INSTALL="$TO_INSTALL nomkl"
+        fi
+
+        if [[ -n "$PANDAS_VERSION" ]]; then
+            TO_INSTALL="$TO_INSTALL pandas=$PANDAS_VERSION"
+        fi
+
+        if [[ -n "$PYAMG_VERSION" ]]; then
+            TO_INSTALL="$TO_INSTALL pyamg=$PYAMG_VERSION"
+        fi
+
+        if [[ -n "$PILLOW_VERSION" ]]; then
+            TO_INSTALL="$TO_INSTALL pillow=$PILLOW_VERSION"
+        fi
+
+        conda create -n testenv --yes $TO_INSTALL
+        #source activate testenv
+      displayName: 'Conda'
+      condition: and(succeeded(), eq(variables['conda'], true))
+
+    # - script: 'pip install coverage codecov'
+    #   displayName: 'Install coverage'
+    #   condition: and(succeeded(), eq(variables['coverage'], true))
+
+    # - script: 'pip install sphinx numpydoc'
+    #   displayName: 'Install doc tools'
+    #   condition: and(succeeded(), eq(variables['test_docstrings'], true))
+
+    - script: |
+        if [ -n "$MINICONDA_PATH" ]; then
+          source activate testenv
+        fi
+
+        python --version
+        python -c "import numpy; print('numpy %s' % numpy.__version__)"
+        python -c "import scipy; print('scipy %s' % scipy.__version__)"
+
+        python setup.py develop
+      displayName: 'Build'
+
+    # - script: pip install pytest && pytest tests --doctest-modules --junitxml=junit/test-results.xml
+    #   displayName: 'pytest'
+
+    # - task: PublishTestResults@2
+    #   inputs:
+    #     testResultsFiles: '**/test-results.xml'
+    #     testRunTitle: 'Python $(python.version)'
