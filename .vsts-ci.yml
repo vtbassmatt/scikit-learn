@@ -20,6 +20,7 @@ phases:
         pyamg.version: '3.3.2'
         pillow.version: '4.3.0'
         coverage: true
+        run_flake8: false
         check_pytest_soft_dependency: true
         test_docstrings: true
       # Python37-dev:
@@ -37,9 +38,6 @@ phases:
         versionSpec: '$(python.version)'
         architecture: 'x64'
 
-    # - script: python -m pip install --upgrade pip && pip install -r requirements.txt
-    #   displayName: 'Install dependencies'
-    
     - script: |
         wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
         MINICONDA_PATH=$BUILD_BINARIESDIRECTORY/miniconda
@@ -71,7 +69,6 @@ phases:
         fi
 
         conda create -n testenv --yes $TO_INSTALL
-        #source activate testenv
       displayName: 'Conda'
       condition: and(succeeded(), eq(variables['conda'], true))
 
@@ -85,9 +82,25 @@ phases:
       displayName: 'Install coverage'
       condition: and(succeeded(), eq(variables['coverage'], true))
 
-    # - script: 'pip install sphinx numpydoc'
-    #   displayName: 'Install doc tools'
-    #   condition: and(succeeded(), eq(variables['test_docstrings'], true))
+    - script: |
+        if [ -n "$MINICONDA_PATH" ]; then
+          export PATH=$MINICONDA_PATH/bin:$PATH
+          source activate testenv
+        fi
+
+        conda install flake8 -y
+      displayName: 'Install Flake8'
+      condition: and(succeeded(), eq(variables['run_flake8'], true))
+
+    - script: |
+        if [ -n "$MINICONDA_PATH" ]; then
+          export PATH=$MINICONDA_PATH/bin:$PATH
+          source activate testenv
+        fi
+
+        pip install sphinx numpydoc
+      displayName: 'Install doc tools'
+      condition: and(succeeded(), eq(variables['test_docstrings'], true))
 
     - script: |
         if [ -n "$MINICONDA_PATH" ]; then
@@ -161,11 +174,30 @@ phases:
             cd $OLDPWD
         fi
       displayName: 'Test'
+    
+    - script: |
+        set -e
 
-    # - script: pip install pytest && pytest tests --doctest-modules --junitxml=junit/test-results.xml
-    #   displayName: 'pytest'
+        if [ -n "$MINICONDA_PATH" ]; then
+          export PATH=$MINICONDA_PATH/bin:$PATH
+          source activate testenv
+        fi
 
-    # - task: PublishTestResults@2
-    #   inputs:
-    #     testResultsFiles: '**/test-results.xml'
-    #     testRunTitle: 'Python $(python.version)'
+        if [[ "$COVERAGE" == "true" ]]; then
+          # Need to run codecov from a git checkout, so we copy .coverage
+          # from TEST_DIR where pytest has been run
+          cp $TEST_DIR/.coverage $BUILD_SOURCESDIRECTORY
+          cd $BUILD_SOURCESDIRECTORY
+          # Ignore codecov failures as the codecov server is not
+          # very reliable but we don't want travis to report a failure
+          # in the github UI just because the coverage report failed to
+          # be published.
+          #codecov || echo "codecov upload failed"
+        fi
+      displayName: 'Post-success codecov upload'
+      condition: succeeded()
+
+    - task: PublishCodeCoverageResults@1
+      inputs:
+        summaryFileLocation: '**/.coverage'
+
