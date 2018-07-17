@@ -10,6 +10,7 @@ if [[ "$COVERAGE" == "true" ]]; then
     # from TEST_DIR where pytest has been run
     cp $TEST_DIR/.coverage $BUILD_SOURCESDIRECTORY
     cd $BUILD_SOURCESDIRECTORY
+    coverage xml -o coverage.xml
     # Ignore codecov failures as the codecov server is not
     # very reliable but we don't want travis to report a failure
     # in the github UI just because the coverage report failed to

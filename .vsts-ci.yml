@@ -53,10 +53,11 @@ phases:
       displayName: 'Test'
     
     - script: ./build_tools/vsts/codecov.sh
-      displayName: 'Post-success codecov upload'
+      displayName: 'Codecov prepare and upload'
 
     - task: PublishCodeCoverageResults@1
       displayName: 'Publish code coverage results'
       inputs:
-        summaryFileLocation: '.coverage'
+        summaryFileLocation: 'coverage.xml'
+        codeCoverageTool: 'cobertura'
 
