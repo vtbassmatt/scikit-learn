@@ -58,5 +58,5 @@ phases:
     - task: PublishCodeCoverageResults@1
       displayName: 'Publish code coverage results'
       inputs:
-        summaryFileLocation: '**/.coverage'
+        summaryFileLocation: '.coverage'
 
