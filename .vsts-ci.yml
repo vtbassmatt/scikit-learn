@@ -1,7 +1,7 @@
 
 phases:
 
-- phase: 'TestInUbuntu'
+- phase: 'Linux'
   queue:
     name: 'Hosted Linux Preview'
     parallel: 1
@@ -61,3 +61,60 @@ phases:
         summaryFileLocation: 'coverage.xml'
         codeCoverageTool: 'cobertura'
 
+
+- phase: 'Windows'
+  queue:
+    name: 'Hosted VS2017'
+    parallel: 1
+    matrix:
+      # Python27:
+      #   python.version: '2.7'
+      # Python35:
+      #   python.version: '3.5'
+      Python36:
+        conda: true
+        python.version: '3.6'
+        numpy.version: '1.14.2'
+        scipy.version: '1.0.0'
+        pandas.version: '0.20.3'
+        cython.version: '0.26.1'
+        pyamg.version: '3.3.2'
+        pillow.version: '4.3.0'
+        coverage: true
+        run_flake8: false
+        check_pytest_soft_dependency: true
+        test_docstrings: true
+      # Python37-dev:
+      #   python.version: '>= 3.7.0a'
+
+  steps:
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+        architecture: 'x64'
+
+    - script: python -m pip install -U pip setuptools wheel
+      displayName: 'Update Python tools'
+    
+    - script: |
+        python --version
+        python -c "import struct; print(struct.calcsize('P') * 8)"
+        pip --version
+      displayName: 'Echo versions'
+    
+    - script: pip install --timeout=60 -r build_tools/vsts/requirements.txt"
+      displayName: 'Install requirements'
+    
+    - script: |
+        python setup.py bdist_wheel bdist_wininst -b doc/logos/scikit-learn-logo.bmp
+        pip install --pre --no-index --find-links dist/ scikit-learn
+      displayName: 'Create and install dist'
+    
+    - script: |
+        mkdir "../empty_folder"
+        cd "../empty_folder"
+        pytest --showlocals --durations=20 --pyargs sklearn
+      displayName: Test
+
+# TODO: Conda, artifacts, upload step, notification step
