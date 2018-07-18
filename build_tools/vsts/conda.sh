@@ -1,5 +1,5 @@
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-MINICONDA_PATH="$BUILD_BINARIESDIRECTORY/miniconda"
+MINICONDA_PATH="$BUILD_BINARIESDIRECTORY/_mc"
 chmod +x miniconda.sh && ./miniconda.sh -b -p $MINICONDA_PATH
 echo "##vso[task.setvariable variable=MINICONDA_PATH]$MINICONDA_PATH"
 export PATH="$MINICONDA_PATH/bin:$PATH"

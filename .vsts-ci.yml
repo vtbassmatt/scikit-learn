@@ -27,7 +27,7 @@ phases:
       #   python.version: '>= 3.7.0a'
   
   variables:
-    test_dir: '$($BUILD_BINARIESDIRECTORY/test)'
+    test_dir: '$(Build.BinariesDirectory)/_test'
     omp_num_threads: 4
     openblas_num_threads: 4
 
