@@ -6,11 +6,33 @@ phases:
     name: 'Hosted Linux Preview'
     parallel: 1
     matrix:
-      # Python27:
-      #   python.version: '2.7'
-      # Python35:
-      #   python.version: '3.5'
-      Python36:
+      Python27:
+        conda: false
+        python.version: '2.7'
+        cython.version: '0.23.5'
+        coverage: true
+      Python34Conda:
+        conda: true
+        python.version: '3.4'
+        numpy.version: '1.10.4'
+        scipy.version: '0.16.1'
+        cython.version: '0.25.2'
+        pillow.version: '4.0.0'
+        install_mkl: false
+        coverage: true
+        run_flake8: false
+        check_pytest_soft_dependency: true
+        test_docstrings: true
+      Python35Conda:
+        conda: true
+        python.version: '3.5'
+        numpy.version: '1.13.1'
+        scipy.version: '0.19.1'
+        cython.version: '0.26.1'
+        run_flake8: true
+        skip_tests: true
+        install_mkl: true
+      Python36Conda:
         conda: true
         python.version: '3.6'
         numpy.version: '1.14.2'
@@ -23,8 +45,6 @@ phases:
         run_flake8: false
         check_pytest_soft_dependency: true
         test_docstrings: true
-      # Python37-dev:
-      #   python.version: '>= 3.7.0a'
   
   variables:
     test_dir: '$(Build.BinariesDirectory)/_test'
@@ -34,12 +54,14 @@ phases:
   steps:
 
     - task: UsePythonVersion@0
+      displayName: 'Use Python $(python.version)'
+      condition: eq(variables['conda'], false)
       inputs:
         versionSpec: '$(python.version)'
         architecture: 'x64'
 
     - script: ./build_tools/vsts/conda.sh
-      displayName: 'Conda'
+      displayName: 'Setup Conda'
       condition: eq(variables['conda'], true)
 
     - script: ./build_tools/vsts/tools.sh
@@ -67,25 +89,13 @@ phases:
     name: 'Hosted VS2017'
     parallel: 1
     matrix:
-      # Python27:
-      #   python.version: '2.7'
-      # Python35:
-      #   python.version: '3.5'
-      Python36:
-        conda: true
-        python.version: '3.6'
-        numpy.version: '1.14.2'
-        scipy.version: '1.0.0'
-        pandas.version: '0.20.3'
-        cython.version: '0.26.1'
-        pyamg.version: '3.3.2'
-        pillow.version: '4.3.0'
-        coverage: true
-        run_flake8: false
-        check_pytest_soft_dependency: true
-        test_docstrings: true
-      # Python37-dev:
-      #   python.version: '>= 3.7.0a'
+      Python27:
+        python.version: '2.7'
+      # Python36:
+      #   conda: true
+      #   python.version: '3.6'
+      Python37-dev:
+        python.version: '>= 3.7.0a'
 
   steps:
 
