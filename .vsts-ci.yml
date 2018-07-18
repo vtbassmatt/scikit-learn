@@ -58,7 +58,7 @@ phases:
     - task: PublishCodeCoverageResults@1
       displayName: 'Publish code coverage results'
       inputs:
-        summaryFileLocation: 'coverage.xml'
+        summaryFileLocation: '$(Build.SourcesDirectory)/coverage.xml'
         codeCoverageTool: 'cobertura'
 
 
