@@ -1,5 +1,5 @@
 if [ -n "$MINICONDA_PATH" ]; then
-    export PATH=$MINICONDA_PATH/bin:$PATH
+    export PATH="$MINICONDA_PATH/bin:$PATH"
     source activate testenv
 fi
 
