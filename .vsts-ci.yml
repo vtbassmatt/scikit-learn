@@ -118,6 +118,9 @@ phases:
     
     - script: |
         python setup.py bdist_wheel bdist_wininst -b doc/logos/scikit-learn-logo.bmp
+        echo -----
+        dir
+        echo -----
         pip install --pre --no-index --find-links dist/ scikit-learn
       displayName: 'Create and install dist'
     
