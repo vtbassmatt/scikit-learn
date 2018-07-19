@@ -19,7 +19,7 @@ phases:
         cython.version: '0.25.2'
         pillow.version: '4.0.0'
         install_mkl: false
-        coverage: true
+        coverage: false
         run_flake8: false
         check_pytest_soft_dependency: true
         test_docstrings: true

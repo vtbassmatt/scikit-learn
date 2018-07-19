@@ -1,6 +1,8 @@
 if [ -n "$MINICONDA_PATH" ]; then
     export PATH="$MINICONDA_PATH/bin:$PATH"
     source activate testenv
+else
+    pip install -r build_tools/vsts/requirements.txt
 fi
 
 if [[ "$COVERAGE" == "true" ]]; then
@@ -8,7 +10,7 @@ if [[ "$COVERAGE" == "true" ]]; then
 fi
 
 if [[ "$RUN_FLAKE8" == "true" ]]; then
-    conda install flake8 -y
+    pip install flake8
 fi
 
 if [[ "$TEST_DOCSTRINGS" == "true" ]]; then
